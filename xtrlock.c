@@ -82,7 +82,7 @@ int main(int argc, char **argv){
   Cursor cursor;
   Pixmap csr_source,csr_mask;
   XColor csr_fg, csr_bg, dummy, black;
-  int ret, screen, blank = 0, fork_after = 0;
+  int ret, screen, blank = 0, fork_after = 0, lock_key = 0;
 #ifdef SHADOW_PWD
   struct spwd *sp;
 #endif
@@ -120,6 +120,9 @@ int main(int argc, char **argv){
         break;
       case 'f':
         fork_after = 1;
+        break;
+      case 'k':
+        lock_key = 1;
         break;
       default:
         fprintf(stderr,"xtrlock (version %s mod); usage: xtrlock [-b] [-c command] [-f]\n",
@@ -254,13 +257,15 @@ int main(int argc, char **argv){
     exit(1);
   }
 
-  if (XGrabPointer(display,window,False,(KeyPressMask|KeyReleaseMask)&0,
-               GrabModeAsync,GrabModeAsync,None,
-               cursor,CurrentTime)!=GrabSuccess) {
-    XUngrabKeyboard(display,CurrentTime);
-    fprintf(stderr,"xtrlock (version %s): cannot grab pointer\n",
-	    program_version);
-    exit(1);
+  if(!lock_key){
+    if (XGrabPointer(display,window,False,(KeyPressMask|KeyReleaseMask)&0,
+                GrabModeAsync,GrabModeAsync,None,
+                cursor,CurrentTime)!=GrabSuccess) {
+      XUngrabKeyboard(display,CurrentTime);
+      fprintf(stderr,"xtrlock (version %s): cannot grab pointer\n",
+        program_version);
+      exit(1);
+    }
   }
 
   if (fork_after) {
