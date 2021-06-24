@@ -101,18 +101,25 @@ int main(int argc, char **argv){
       fork_after = 1;
       argc--;
       argv++;
+    }else if ((strcmp(argv[1], "-k") == 0)) {
+      fork_after = 1;
+      argc--;
+      argv++;
     } else {
-      fprintf(stderr,"xtrlock-s (version %s); usage: xtrlock [-b] [-f]\n",
+      fprintf(stderr,"xtrlock (version %s); usage: xtrlock [-b] [-f]\n",
               program_version);
       exit(1);
     }
   }
 #endif
 
-  while ((opt = getopt (argc, argv, "bc:f")) != -1) {
+  while ((opt = getopt (argc, argv, "bkc:f")) != -1) {
     switch (opt) {
       case 'b':
         blank = 1;
+        break;
+      case 'k':
+        lock_key = 1;
         break;
       case 'c':
         strncpy(cmdstr, optarg, CMDMAXLEN - 1);
@@ -121,11 +128,8 @@ int main(int argc, char **argv){
       case 'f':
         fork_after = 1;
         break;
-      case 'k':
-        lock_key = 1;
-        break;
       default:
-        fprintf(stderr,"xtrlock-s (version %s mod); usage: xtrlock [-b] [-c command] [-f]\n",
+        fprintf(stderr,"xtrlock (version %s mod); usage: xtrlock [-b] [-k] [-c command] [-f]\n",
                 program_version);
         exit(1);
     }
@@ -178,7 +182,7 @@ int main(int argc, char **argv){
   display= XOpenDisplay(0);
 
   if (display==NULL) {
-    fprintf(stderr,"xtrlock-s (version %s): cannot open display\n",
+    fprintf(stderr,"xtrlock (version %s): cannot open display\n",
 	    program_version);
     exit(1);
   }
@@ -252,7 +256,7 @@ int main(int argc, char **argv){
     select(1,NULL,NULL,NULL,&tv);
   }
   if (gs==0){
-    fprintf(stderr,"xtrlock-s (version %s): cannot grab keyboard\n",
+    fprintf(stderr,"xtrlock (version %s): cannot grab keyboard\n",
 	    program_version);
     exit(1);
   }
@@ -262,7 +266,7 @@ int main(int argc, char **argv){
                 GrabModeAsync,GrabModeAsync,None,
                 cursor,CurrentTime)!=GrabSuccess) {
       XUngrabKeyboard(display,CurrentTime);
-      fprintf(stderr,"xtrlock-s (version %s): cannot grab pointer\n",
+      fprintf(stderr,"xtrlock (version %s): cannot grab pointer\n",
         program_version);
       exit(1);
     }
@@ -271,7 +275,7 @@ int main(int argc, char **argv){
   if (fork_after) {
     pid_t pid = fork();
     if (pid < 0) {
-      fprintf(stderr,"xtrlock-s (version %s): cannot fork: %s\n",
+      fprintf(stderr,"xtrlock (version %s): cannot fork: %s\n",
               program_version, strerror(errno));
       exit(1);
     } else if (pid > 0) {
@@ -324,6 +328,9 @@ int main(int argc, char **argv){
  loop_x:
   if (cmdlen)
     execl("/bin/sh", "sh", "-c", cmdstr, (char *) 0);
+
+  exit(0);
+}
 
   exit(0);
 }
